@@ -1,0 +1,28 @@
+# This is naturally my first foray with Tom's Obvious, Minimalist Language
+
+
+[build-system]
+# How do I build this project: use setuptools
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snaplm"
+version = "0.1.0"
+# 0.x.x means it's still developing, as per convention.
+description = "A lightweight local LLM hardware detection and optimization tool"
+requires-python = ">=3.10"
+
+# SnapLM needs the following libraries installed. 
+dependencies = [
+    "psutil",
+    "typer"
+]
+
+# The following is the command, where snaplm is the terminal command, cli is the file, app is from the typer command.
+[project.scripts]
+snaplm = "snaplm.cli:app"
+
+# Tells us the Python command is in the src folder.
+[tool.setuptools.packages.find]
+where = ["src"]
