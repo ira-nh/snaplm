@@ -3,7 +3,7 @@ import typer
 from snaplm.hardware import get_hardware_info
 
 # Create command system (CLI application)
-app = typer.Typer()
+app = typer.Typer(no_args_is_help=True)
 
 # When the user types "detect", call this function
 @app.command()
