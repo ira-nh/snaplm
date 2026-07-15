@@ -194,9 +194,7 @@ Example:
 pip install psutil
 ```
 
-This searches PyPI for a package named `psutil`.
-
-The package comes from the internet.
+This searches PyPI for a package named `psutil` (from the Internet).
 
 ---
 
@@ -264,7 +262,7 @@ Running:
 py -m pip install -e .
 ```
 
-causes this process:
+caused this process:
 
 ```text
 Current directory
@@ -312,43 +310,6 @@ psutil
 Hardware report
 ```
 
----
-
-# Why Use a CLI?
-
-Before:
-
-```powershell
-py src/snaplm/cli.py
-```
-
-The user needed to know:
-
-- The programming language
-- The file location
-- The project structure
-
-After:
-
-```powershell
-snaplm
-```
-
-The user only needs to know the application name.
-
-This is how normal command-line tools work.
-
-Examples:
-
-```powershell
-git
-python
-docker
-snaplm
-```
-
----
-
 # Editable Install vs Normal Install
 
 Normal install:
@@ -370,20 +331,6 @@ Creates a development link.
 Editable installs are useful while building software because code changes are immediately available.
 
 ---
-
-# Current Achievement
-
-SnapLM has progressed from:
-
-```text
-Python script
-```
-
-to:
-
-```text
-Installable command-line application
-```
 
 The current command:
 
