@@ -16,9 +16,11 @@ def detect():
     print("SnapLM Hardware Report")
     print("\n======================\n")
 
-    for key, value in info.items():
-        print(f"{key}: {value}")
+    for section, data in info.items():
+        print(f"\n{section.upper()}")
 
+        for key, value in data.items():
+            print(f"  {key}: {value}")
 
 if __name__ == "__main__":
     app()
