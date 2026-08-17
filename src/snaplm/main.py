@@ -1,4 +1,4 @@
-from hardware import get_hardware_info
+from snaplm.hardware import get_hardware_info
 
 def main():
     info = get_hardware_info()

@@ -1,12 +1,44 @@
 import platform
 import psutil
 
+def get_os():
+    return {
+        "name": platform.system(),
+        "version": platform.release(),
+        "architecture": platform.machine(),
+    }
+
+
+def get_cpu():
+    return {
+        "name": platform.processor(),
+        "physical_cores": psutil.cpu_count(logical=False),
+        "logical_cores": psutil.cpu_count(logical=True),
+    }
+
+
+def get_memory():
+    memory = psutil.virtual_memory()
+
+    return {
+        "total_gb": round(memory.total / (1024**3), 2),
+        "available_gb": round(memory.available / (1024**3), 2),
+        "used_gb": round(memory.used / (1024**3), 2),
+        "percent_used": memory.percent,
+    }
+
+
+def get_python():
+    return {
+        "version": platform.python_version(),
+    }
+
 def get_hardware_info():
     return {
-        "system": platform.system(),
-        "architecture": platform.machine(),
-        "processor": platform.processor(),
-        "memory_gb": round(psutil.virtual_memory().total/(1024**3),2),
+        "os": get_os(),
+        "cpu": get_cpu(),
+        "memory": get_memory(),
+        "python": get_python(),
     }
 
 {
