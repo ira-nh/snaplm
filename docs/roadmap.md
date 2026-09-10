@@ -198,3 +198,180 @@ Automatically configure and launch local inference.
 - Support Qualcomm QNN
 - Explain inference bottlenecks
 - Simplify local AI deployment across hardware platforms
+
+## Milestone 8 — Runtime Detection
+
+### Goal
+
+Move beyond detecting hardware and determine which inference runtimes can actually use it.
+
+The important distinction is:
+
+```text
+Hardware detected
+        |
+        v
+Runtime available
+        |
+        v
+Runtime compatible
+        |
+        v
+Model successfully executed
+```
+
+Detecting a GPU or NPU does not necessarily mean that an installed inference runtime can use it.
+
+### Runtime Module
+
+A new module was created:
+
+```text
+src/snaplm/runtime.py
+```
+
+The first runtime detector implemented was:
+
+```python
+detect_ollama()
+```
+
+It uses `subprocess.run()` to execute:
+
+```powershell
+ollama --version
+```
+
+and currently detects:
+
+```text
+Ollama
+Installed: True
+Version: 0.34.0
+```
+
+The detector uses `try` / `except` so that a missing runtime can be reported rather than causing SnapLM to crash.
+
+### Ollama Investigation
+
+Ollama was benchmarked using Qwen3 4B and Qwen3 8B.
+
+Results:
+
+```text
+Qwen3 4B
+Execution: 100% CPU
+Generation: ~11.14 tokens/s
+
+Qwen3 8B
+Execution: 100% CPU
+Generation: ~5.99 tokens/s
+```
+
+Despite SnapLM detecting both:
+
+```text
+Qualcomm Adreno X1-45 GPU
+Qualcomm Hexagon NPU
+```
+
+the tested Ollama execution path used neither accelerator.
+
+### Runtime Discovery
+
+The machine was checked for:
+
+* ONNX Runtime
+* Qualcomm QNN tools
+* DirectML packages
+* Qualcomm AI tools
+
+None were currently detected.
+
+This means an accelerated inference environment will need to be configured before GPU or NPU performance can be tested.
+
+### Python Environment Investigation
+
+Available Python environments were also inspected.
+
+```text
+Python 3.14
+Architecture: ARM64
+Status: Working
+
+Python 3.11
+Architecture: AMD64
+Status: Working
+
+Python 3.13 ARM64
+Status: Registered but inaccessible
+```
+
+This established that Python version alone is not sufficient when evaluating hardware-specific runtimes. Architecture and runtime compatibility also matter.
+
+### Candidate Acceleration Paths
+
+Current options:
+
+```text
+Hexagon NPU
+├── Windows ML + QNN
+└── ONNX Runtime + QNN
+
+Adreno GPU
+└── DirectML / compatible GPU runtime
+```
+
+Windows ML + QNN will be investigated first, with ONNX Runtime QNN as an alternative route.
+
+### Current Status
+
+```text
+Hardware Detection
+        |
+        +-- CPU       ✓
+        +-- Memory    ✓
+        +-- GPU       ✓
+        +-- NPU       ✓
+              |
+              v
+Runtime Detection
+        |
+        +-- Ollama    ✓
+        +-- Windows ML ?
+        +-- QNN       ?
+        +-- ONNX      ?
+              |
+              v
+Accelerated Inference
+              |
+              v
+             NEXT
+```
+
+### Next Milestone
+
+Establish an accelerated inference environment and successfully execute a model through the Hexagon NPU or Adreno GPU.
+
+Success requires more than installing a runtime:
+
+```text
+Runtime installed
+        |
+        v
+Execution provider available
+        |
+        v
+Model loaded
+        |
+        v
+Inference executed
+        |
+        v
+Accelerator confirmed
+        |
+        v
+Performance benchmarked
+```
+
+The resulting performance will then be compared against the existing Ollama CPU baseline.
