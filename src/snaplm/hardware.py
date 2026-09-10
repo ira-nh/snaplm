@@ -58,6 +58,33 @@ def get_gpu():
         "status": gpu["Status"],
     }
 
+def get_npu():
+    command = [
+        "powershell",
+        "-NoProfile",
+        "-Command",
+        """
+        Get-PnpDevice -Class ComputeAccelerator |
+        Select-Object FriendlyName, Status, InstanceId |
+        ConvertTo-Json
+        """,
+    ]
+
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    npu = json.loads(result.stdout)
+
+    return {
+        "name": npu["FriendlyName"],
+        "status": npu["Status"],
+        "instance_id": npu["InstanceId"],
+    }
+
 def get_python():
     return {
         "version": platform.python_version(),
@@ -69,6 +96,6 @@ def get_hardware_info():
         "cpu": get_cpu(),
         "memory": get_memory(),
         "gpu": get_gpu(),
+        "npu": get_npu(),
         "python": get_python(),
     }
-
