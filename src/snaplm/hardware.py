@@ -1,4 +1,7 @@
+import json
 import platform
+import subprocess
+
 import psutil
 
 def get_os():
@@ -27,6 +30,33 @@ def get_memory():
         "percent_used": memory.percent,
     }
 
+def get_gpu():
+    command = [
+        "powershell",
+        "-NoProfile",
+        "-Command",
+        """
+        Get-CimInstance Win32_VideoController |
+        Select-Object Name, AdapterCompatibility, DriverVersion, Status |
+        ConvertTo-Json
+        """,
+    ]
+
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    gpu = json.loads(result.stdout)
+
+    return {
+        "name": gpu["Name"],
+        "vendor": gpu["AdapterCompatibility"],
+        "driver_version": gpu["DriverVersion"],
+        "status": gpu["Status"],
+    }
 
 def get_python():
     return {
@@ -38,31 +68,7 @@ def get_hardware_info():
         "os": get_os(),
         "cpu": get_cpu(),
         "memory": get_memory(),
+        "gpu": get_gpu(),
         "python": get_python(),
     }
 
-{
-    "system": {
-        "os": "",
-        "version": "",
-        "architecture": "",
-    },
-
-    "cpu": {
-        "name": "",
-        "physical_cores": "",
-        "logical_cores": "",
-    },
-
-    "memory": {
-        "total_gb": 0,
-        "available_gb": 0,
-        "used_gb": 0,
-        "percent_used": 0,
-    },
-
-    "python": {
-        "version": "",
-    }
-    
-}

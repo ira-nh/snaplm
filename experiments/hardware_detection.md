@@ -54,3 +54,13 @@ Investigate Windows hardware APIs and other methods for retrieving:
 - Snapdragon CPU information
 - Adreno GPU information
 - Hexagon NPU information
+
+### NPU Detection
+
+The Windows Plug and Play device interface was queried to identify
+compute accelerators:
+
+```powershell
+Get-PnpDevice | Where-Object {
+    $_.FriendlyName -match "NPU|Neural|Hexagon|Qualcomm"
+}
