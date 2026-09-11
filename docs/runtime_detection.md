@@ -379,3 +379,278 @@ Recommend / Run
 ```
 
 This runtime-awareness is a core part of SnapLM's intended role as an orchestration layer for local AI.
+
+## QNN Execution Provider Discovery and Registration
+
+### Objective
+
+Determine whether Windows ML could identify, acquire, prepare, and expose a Qualcomm QNN execution provider compatible with the development machine.
+
+Previous hardware detection had already established the presence of:
+
+```text
+Snapdragon X Plus X1P-42-100
+├── Adreno X1-45 GPU
+└── Hexagon NPU
+```
+
+However, the existence of the Hexagon NPU does not necessarily mean that an inference runtime is capable of using it.
+
+The next goal was therefore to establish a usable QNN execution path.
+
+### Windows ML Environment
+
+A separate virtual environment was created for accelerator experimentation:
+
+```text
+.venv-winml
+```
+
+The environment uses:
+
+```text
+Python: 3.13.15
+Architecture: ARM64
+```
+
+This environment is deliberately separate from the main SnapLM Python 3.14 environment.
+
+This allows accelerator runtimes with different Python and architecture requirements to remain isolated from the main application.
+
+### Windows ML Installation
+
+The experimental environment was configured with Windows ML and its ONNX Runtime integration.
+
+ONNX Runtime reported:
+
+```text
+Version: 1.28.0
+
+Available providers:
+DmlExecutionProvider
+CPUExecutionProvider
+```
+
+At this stage, QNN was not yet registered.
+
+The following warning was also observed:
+
+```text
+Init provider bridge failed.
+```
+
+The warning is currently being tracked but has not prevented Windows ML provider discovery or QNN registration.
+
+No changes have been made specifically to suppress or work around it.
+
+### Execution Provider Discovery
+
+Windows ML's `ExecutionProviderCatalog` was queried to identify execution providers compatible with the development machine.
+
+The initial result was:
+
+```text
+WebGpuExecutionProvider
+State: NOT_PRESENT
+
+QNNExecutionProvider
+State: NOT_PRESENT
+```
+
+This was an important distinction.
+
+QNN was not installed yet, but Windows ML recognized `QNNExecutionProvider` as a provider applicable to the machine.
+
+The discovery pipeline was therefore:
+
+```text
+Hexagon NPU detected
+        |
+        v
+Windows ML initialized
+        |
+        v
+ExecutionProviderCatalog queried
+        |
+        v
+QNNExecutionProvider discovered
+```
+
+### Preparing QNN
+
+The QNN provider was selected from the compatible provider list and prepared using:
+
+```python
+qnn.ensure_ready_async().get()
+```
+
+During the first preparation, the operation took significantly longer than the earlier hardware queries because Windows ML needed to acquire and prepare the provider.
+
+The state changed from:
+
+```text
+NOT_PRESENT
+```
+
+to:
+
+```text
+READY
+```
+
+The resulting provider library was:
+
+```text
+C:\Program Files\WindowsApps\
+Microsoft.WinML.Qualcomm.QNN.EP.2_2.2480.49.0_arm64__8wekyb3d8bbwe\
+ExecutionProvider\
+onnxruntime_providers_qnn.dll
+```
+
+The package path also confirms that the acquired provider is an ARM64 package.
+
+### Subsequent Provider State
+
+On a later execution, QNN initially reported:
+
+```text
+NOT_READY
+```
+
+rather than:
+
+```text
+NOT_PRESENT
+```
+
+This demonstrates an important distinction between provider states.
+
+Observed states so far:
+
+```text
+NOT_PRESENT
+    |
+    | provider acquisition
+    v
+READY
+```
+
+and on a later process:
+
+```text
+NOT_READY
+    |
+    | ensure_ready_async()
+    v
+READY
+```
+
+This suggests that installation and readiness should be treated separately by SnapLM.
+
+A provider may already exist on the system while still requiring preparation before use in the current application/runtime context.
+
+### Registering QNN with ONNX Runtime
+
+Preparing the provider through Windows ML did not automatically make it visible to the Python ONNX Runtime environment.
+
+Before registration:
+
+```text
+DmlExecutionProvider
+CPUExecutionProvider
+```
+
+The provider library was therefore registered explicitly with ONNX Runtime.
+
+After registration:
+
+```text
+DmlExecutionProvider
+CPUExecutionProvider
+QNNExecutionProvider
+```
+
+### Key Result
+
+The experimental Python environment can now successfully discover and register:
+
+```text
+QNNExecutionProvider
+```
+
+with ONNX Runtime.
+
+The complete path established so far is:
+
+```text
+Snapdragon X Plus
+        |
+        v
+Hexagon NPU detected
+        |
+        v
+Windows ML
+        |
+        v
+QNNExecutionProvider discovered
+        |
+        v
+QNN provider acquired
+        |
+        v
+QNN provider READY
+        |
+        v
+QNN library registered
+        |
+        v
+ONNX Runtime recognizes QNNExecutionProvider
+```
+
+### Important Limitation
+
+This result does **not yet prove that inference has executed on the Hexagon NPU**.
+
+The experiment currently proves:
+
+* the accelerator exists
+* Windows recognizes it
+* Windows ML identifies QNN as compatible
+* the QNN provider can be acquired
+* the provider can become ready
+* the QNN library can be registered with ONNX Runtime
+
+The next experiment must actually execute an ONNX graph through QNN.
+
+### Next Experiment
+
+Create a minimal ONNX model and explicitly request:
+
+```text
+QNNExecutionProvider
+```
+
+The initial model should be deliberately simple so that runtime problems can be separated from language-model compatibility problems.
+
+Planned sequence:
+
+```text
+Tiny ONNX graph
+        |
+        v
+Create QNN inference session
+        |
+        v
+Execute graph
+        |
+        v
+Verify result
+        |
+        v
+Investigate execution device
+        |
+        v
+Confirm accelerator path
+```
+
+Only after this succeeds will testing move toward transformer or language-model workloads.

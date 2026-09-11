@@ -319,3 +319,113 @@ NOT_PRESENT
 NOT_READY
     ↓
 READY
+
+## Milestone 9 — QNN Provider Registration
+
+### Goal
+
+Move from detecting the Hexagon NPU to establishing an inference runtime capable of communicating with Qualcomm acceleration hardware.
+
+### Environment
+
+A dedicated Windows ML environment was created:
+
+```text
+Python: 3.13.15
+Architecture: ARM64
+Environment: .venv-winml
+```
+
+The accelerator environment is kept separate from SnapLM's main Python 3.14 environment.
+
+### Windows ML
+
+Windows ML was successfully installed and initialized.
+
+Initial ONNX Runtime providers:
+
+```text
+DmlExecutionProvider
+CPUExecutionProvider
+```
+
+Windows ML's execution provider catalogue was then queried.
+
+It identified:
+
+```text
+QNNExecutionProvider
+State: NOT_PRESENT
+```
+
+This confirmed that Windows ML recognized QNN as a compatible execution provider for the development machine.
+
+### QNN Acquisition
+
+The provider was prepared using:
+
+```python
+qnn.ensure_ready_async().get()
+```
+
+Its state changed to:
+
+```text
+READY
+```
+
+and Windows installed an ARM64 Qualcomm QNN provider package.
+
+On subsequent processes, the provider may initially report:
+
+```text
+NOT_READY
+```
+
+before being prepared again.
+
+This established an important distinction:
+
+```text
+Provider installed
+        !=
+Provider ready for current runtime
+```
+
+### ONNX Runtime Registration
+
+After QNN was prepared, its provider library was explicitly registered with the Python ONNX Runtime environment.
+
+ONNX Runtime then reported:
+
+```text
+DmlExecutionProvider
+CPUExecutionProvider
+QNNExecutionProvider
+```
+
+### Result
+
+The current accelerator stack is now:
+
+```text
+Hexagon NPU              ✓
+        |
+Windows ML               ✓
+        |
+QNN discovered            ✓
+        |
+QNN acquired              ✓
+        |
+QNN READY                 ✓
+        |
+ONNX Runtime registration ✓
+```
+
+Actual NPU inference has **not yet been proven**.
+
+### Next Milestone
+
+Execute a minimal ONNX graph through `QNNExecutionProvider`.
+
+If successful, investigate whether execution is actually occurring on the intended accelerator before moving to a language-model workload.

@@ -328,7 +328,8 @@ cli.py
 
 ## Current Development State
 
-```text
+```
+text
 Project setup             ✓
 Python packaging          ✓
 CLI                       ✓
@@ -337,9 +338,13 @@ Memory detection          ✓
 GPU detection             ✓
 NPU detection             ✓
 CPU inference baseline    ✓
+Runtime detection         ✓
+QNN discovery             ✓
+QNN registration          ✓
 
-Runtime detection         ← CURRENT
-Accelerated inference
+QNN inference test        ← CURRENT
+Accelerator verification
+LLM acceleration
 Automated benchmarking
 Backend abstraction
 Model discovery
