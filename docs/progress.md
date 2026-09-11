@@ -306,3 +306,16 @@ The immediate success criterion is:
 > Run a local language model on the Snapdragon X Plus using an appropriate hardware accelerator rather than relying exclusively on CPU inference.
 
 If this works, SnapLM will have demonstrated the core idea that originally motivated the project.
+
+### QNN Registration
+
+Windows ML successfully acquired and prepared the Qualcomm QNN Execution Provider.
+
+The provider transitioned through:
+
+```text
+NOT_PRESENT
+    ↓
+NOT_READY
+    ↓
+READY
